@@ -11,19 +11,6 @@ typedef unsigned char byte;
     left, right = tree*
 */
 
-//TO DO: FAZER ESSA FUNÇÃO
-void comprimir(const char *entrada, const char *saida)
-{
-    printf("%s\n%s\n", entrada, saida);
-}
-
-//TO DO: FAZER ESSA FUNÇÃO
-void descomprimir(const char *entrada, const char *saida)
-{
-    printf("%s\n%s\n", entrada, saida);
-}
-
-
 typedef struct _nodearvore{
     void    *freq,
             *ch,
@@ -39,9 +26,17 @@ typedef struct _priority_queue_node{
             *next;
 } node_pq;
 
-// MAIN FUNCTION
-// argc = inteiro que contém a quantidade de parâmetros passados para o programa
-// argv[] = array de strings que contém os parâmetros passados para o programa
+//TO DO: FAZER ESSA FUNÇÃO
+void comprimir(const char *entrada, const char *saida)
+{
+    printf("%s\n%s\n", entrada, saida);
+}
+
+//TO DO: FAZER ESSA FUNÇÃO
+void descomprimir(const char *entrada, const char *saida)
+{
+    printf("%s\n%s\n", entrada, saida);
+}
 
 //Função que printa no terminal o uso correto do programa caso tenha sido chamado de forma incorreta
 void error_param()
@@ -50,6 +45,10 @@ void error_param()
     printf("-d: Descomprime um arquivo; ARQ. DE ENTRADA deve ser .huffman\n--------------------");
 }
 
+
+// MAIN FUNCTION
+// argc = inteiro que contém a quantidade de parâmetros passados para o programa
+// argv[] = array de strings que contém os parâmetros passados para o programa
 int main(int argc, char *argv[])
 {
     if(argc < 4){
