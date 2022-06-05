@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
+#include <math.h>
 
 //O unsigned char servirá para representar o byte
 typedef unsigned char byte;
@@ -19,6 +20,20 @@ typedef struct _priority_queue_node{
     void    *node,
             *next;
 } node_pq;
+
+/*
+    função para construir a arvore de huffman
+*/
+
+void insert_queue()
+{
+
+}
+
+void Arv_Huffman_build()
+{
+
+}
 
 //Função que scaneia o arquivo e armazena no array "bytes" as frequências de cada byte scaneado
 void buscando_frequencias(FILE *entrada, unsigned int *bytes)
@@ -59,7 +74,34 @@ void comprimir(const char *entrada, const char *saida)
 //TO DO: FAZER ESSA FUNÇÃO
 void descomprimir(const char *entrada, const char *saida)
 {
+    _nodearvore *raiz = NULL;
     printf("%s\n%s\n", entrada, saida);
+    unsigned int bytes[256] = {0};
+
+    FILE *arquivo_e = fopen(entrada, "rb");
+    if(!arquivo_e)
+        error_file();
+
+    FILE *arquivo_s = fopen(saida, "wb");
+    if(!arquivo_s)
+        error_file();
+
+    fread(bytes, 256. sizeof(bytes[0]), entrada);
+    //implementar a função Arv_Huffman_Build
+    Arv_Huffman_Build(raiz);
+    
+    unsigned tamanho;
+    fread(&tamanho, 1, sizeof(tamanho), entrada);
+
+    unsigned posicao = 0;
+    byte aux = 0;
+
+    //Enquanto for menor q tamanho
+    while(posicao < tamanho)
+    {
+        
+    }
+    
 }
 //Função que printa no terminal o uso correto do programa caso tenha sido chamado de forma incorreta
 void error_param()
