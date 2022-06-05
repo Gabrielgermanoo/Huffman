@@ -2,7 +2,7 @@
 Algoritmo capaz de compactar e descompactar arquivos. Desenvolvido em C.
 
 
-#Grupo:
+# Grupo:
 
 -Adonys Henrique
 -Alejandro Reyes
