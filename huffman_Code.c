@@ -26,6 +26,11 @@ typedef struct _priority_queue_node{
             *next;
 } node_pq;
 
+typedef struct queue
+{
+    void *head, *elements;
+}queue;
+
 /*
     Função que aloca memória e pega os ponteiros e o fazem apontar para nós
     cada nó da lista encadeada é um nó raiz da árvore
