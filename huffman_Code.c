@@ -51,6 +51,7 @@ void error_file()
     exit(EXIT_SUCCESS);
 }
 
+//TO DO: FAZER ESSA FUNÇÃO
 void comprimir(const char *entrada, const char *saida)
 {
     printf("%s\n%s\n", entrada, saida);
