@@ -27,14 +27,47 @@ typedef struct _priority_queue_node{
 } node_pq;
 
 /*
-    função para construir a arvore de huffman
+    Função que aloca memória e pega os ponteiros e o fazem apontar para nós
+    cada nó da lista encadeada é um nó raiz da árvore
 */
+//Verificar se a função está correta!!!
+void *create_node_queue(_priority_queue_node *nodeArv)
+{
+    _priority_queue_node *new_node;
+    if((new_node = malloc(sizeof(*new_node))) == NULL);
+    {
+        nodeArv = NULL;
+    } 
+    new_node->node = nodeArv;
 
+    new_node->next = NULL
+    nodeArv = new_node;
+}
+
+//Verificar se a função está correta!!!
+void *create_node_tree(byte c, int freq, _nodearvore *tree, _nodearvore *left, _nodearvore *right)
+{
+    _nodearvore *new_tree;
+    .
+    if((new_tree = malloc(sizeof(new_tree))) == NULL)
+    {
+        left = NULL;
+        right = NULL;
+    }
+    new_tree->ch = &c;
+    new_tree->freq = &freq;
+    new_tree->left = left;
+    new_tree->right = right;
+    tree = new_tree;
+}
 void insert_queue()
 {
 
 }
 
+/*
+    função para construir a arvore de huffman
+*/
 void Arv_Huffman_build()
 {
 
