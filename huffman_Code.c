@@ -59,10 +59,10 @@ void *create_node_tree(byte c, int freq, _nodearvore *tree, _nodearvore *left, _
         left = NULL;
         right = NULL;
     }
-    new_tree->ch = &c;
-    new_tree->freq = &freq;
-    new_tree->left = left;
-    new_tree->right = right;
+    new_tree->ch = (byte)c;
+    new_tree->freq = (int)freq;
+    new_tree->left = (tree*)left;
+    new_tree->right = (tree*)right;
     tree = new_tree;
 }
 
