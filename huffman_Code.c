@@ -60,6 +60,7 @@ void *create_node_tree(byte c, int freq, _nodearvore *tree, _nodearvore *left, _
     new_tree->right = right;
     tree = new_tree;
 }
+
 void insert_queue()
 {
 
@@ -71,6 +72,22 @@ void insert_queue()
 void Arv_Huffman_build()
 {
 
+}
+/*
+    Função para dar free na Árvore de Huffman
+*/
+void *FreeTree(_nodearvore *node)
+{
+    //caso base da recursão
+    if(!node) return;
+    else
+    {
+        _nodearvore *left = node->left;
+        _nodearvore *right = node->right;
+        free(node);
+        FreeTree(left);
+        FreeTree(right);
+    }
 }
 
 //Função que scaneia o arquivo e armazena no array "bytes" as frequências de cada byte scaneado
