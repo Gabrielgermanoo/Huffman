@@ -7,6 +7,11 @@
 //O unsigned char servirá para representar o byte
 typedef unsigned char byte;
 
+/*  ÁRVORE DE HUFFMAN
+    freq = int
+    ch = byte
+    left, right = tree*
+*/
 typedef struct _nodearvore{
     void    *freq,
             *ch,
