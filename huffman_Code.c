@@ -1,8 +1,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <time.h>
-#include <math.h>
+
+//O unsigned char servirá para representar o byte
+typedef unsigned char byte;
 
 //O unsigned char servirá para representar o byte
 typedef unsigned char byte;
@@ -13,74 +14,144 @@ typedef unsigned char byte;
     left, right = tree*
 */
 typedef struct _nodearvore{
-    void    *freq,
-            *ch,
-            *left,
-            *right;
+    int                    freq;
+    byte                   ch;
+    struct _nodearvore    *left,*right;
 } tree;
 
 // FILA DE PRIORIDADE
 // node = tree / next = node_pq
 typedef struct _priority_queue_node{
-    void    *node,
-            *next;
+    struct _priority_queue_node     *next;
+    struct _nodearvore              *node;
 } node_pq;
 
-typedef struct queue
-{
-    void *head, *elements;
-}queue;
+typedef struct _priority_queue{
+    node_pq     *head;
+    int         tamanho;
+} queue;
 
-/*
-    Função que aloca memória e pega os ponteiros e o fazem apontar para nós
-    cada nó da lista encadeada é um nó raiz da árvore
-*/
-//Verificar se a função está correta!!!
-void *create_node_queue(_priority_queue_node *nodeArv)
+//Função que remove o primeiro item da fila de prioridade
+tree *dequeue(queue *q)
 {
-    _priority_queue_node *new_node;
-    if((new_node = malloc(sizeof(*new_node))) == NULL);
-    {
-        nodeArv = NULL;
-    } 
-    new_node->node = nodeArv;
+    node_pq *aux = q->head;
+    tree *aux_2 = aux->node;
+    
+    q->head = aux->next;
 
-    new_node->next = NULL
-    nodeArv = new_node;
+    free(aux);
+    aux = NULL;
+    q->tamanho--;
+    return aux_2;
 }
 
-//Verificar se a função está correta!!!
-void *create_node_tree(byte c, int freq, _nodearvore *tree, _nodearvore *left, _nodearvore *right)
+node_pq *new_node(tree *tree_node)
 {
-    _nodearvore *new_tree;
-    .
-    if((new_tree = malloc(sizeof(new_tree))) == NULL)
-    {
-        left = NULL;
-        right = NULL;
+    node_pq *node = (node_pq*)malloc(sizeof(node_pq));
+
+    node->node = tree_node;
+    node->next = NULL;
+
+    return node;
+}
+
+tree *new_tree_node(byte ch, int freq, tree *left, tree *right)
+{
+    tree *new_node = (tree*)malloc(sizeof(tree));
+
+    new_node->freq = freq;
+    new_node->ch = ch;
+    new_node->left = left;
+    new_node->right = right;
+
+    return new_node;
+}
+
+//Função que insere um nó na fila de prioridade 
+void insert(node_pq *node, queue *q)
+{
+    if(q->head == NULL || node->node->freq <= q->head->node->freq){
+        node->next = q->head;
+        q->head = node;
     }
-    new_tree->ch = (byte)c;
-    new_tree->freq = (int)freq;
-    new_tree->left = (tree*)left;
-    new_tree->right = (tree*)right;
-    tree = new_tree;
+    else{
+        node_pq *aux = q->head;
+        while(aux->next != NULL){
+            if(node->node->freq <= aux->next->node->freq) break;
+            aux = aux->next;
+        }
+
+        node->next = aux->next;
+        aux->next = node;
+    }
+    q->tamanho++;
 }
 
-void insert_queue()
+tree* huffman_tree(unsigned int *bytes)
 {
+    //Cabeça da fila de prioridade implementada como lista encadeada
+    queue queue = {NULL, 0};
 
+    for(int i=0; i<256; i++)
+    {
+        if(bytes[i])
+            insert(new_node(new_tree_node(i, bytes[i], NULL, NULL)), &queue);
+    }
+    
+    while(queue.tamanho > 1)
+    {
+        tree *left_child = dequeue(&queue);
+        tree *right_child = dequeue(&queue);
+        tree *soma = new_tree_node('*', left_child->freq + right_child->freq, left_child, right_child);
+        insert(new_node(soma), &queue);
+    }
+    
+    return dequeue(&queue);
+    
 }
 
-/*
-    função para construir a arvore de huffman
-*/
-void Arv_Huffman_build()
+//Função que scaneia o arquivo e armazena no array "bytes" as frequências de cada byte scaneado
+void buscando_frequencias(FILE *entrada, unsigned int *bytes)
 {
-
+    byte b;
+    while(fread(&b, 1, 1, entrada))
+        bytes[(byte)b]++;
+    //void rewind(FILE *stream) = volta a stream FILE *entrada para o começo do arquivo
+    rewind(entrada); 
 }
-/*
-    Função para dar free na Árvore de Huffman
-*/
+
+//Função que exibe uma mensagem de erro caso o programa não consiga localizar um arquivo e em seguida o encerra
+void error_file()
+{
+    printf("--------------------\nErro ao encontrar o arquivo, por favor verifique se o arquivo esta no diretorio correto\n--------------------");
+    exit(EXIT_SUCCESS);
+}
+
+//TO DO: FAZER ESSA FUNÇÃO
+void comprimir(const char *entrada, const char *saida)
+{
+    unsigned int bytes[256] = {0};
+    tree *hufftree;
+
+    FILE *arquivo_e = fopen(entrada, "rb");
+    if(!arquivo_e)
+        error_file();
+
+    FILE *arquivo_s = fopen(saida, "wb");
+    if(!arquivo_s)
+        error_file();
+    
+    buscando_frequencias(arquivo_e, bytes);
+
+    hufftree = huffman_tree(bytes);
+    
+
+    byte ch, aux = 0;
+    unsigned int tamanho = 0;
+
+    fclose(arquivo_e);
+    fclose(arquivo_s);
+}
 void *FreeTree(_nodearvore *node)
 {
     //caso base da recursão
@@ -127,8 +198,13 @@ void comprimir(const char *entrada, const char *saida)
         error_file();
 
     buscando_frequencias(arquivo_e, bytes);
-    for(int i=0; i < 256; i++)
-        printf("%d\n", bytes[i]);
+    hufftree = huffman_tree(bytes);
+    
+    byte ch, aux = 0;
+    unsigned int tamanho = 0;
+
+    fclose(arquivo_e);
+    fclose(arquivo_s);
 
 }
 
@@ -146,22 +222,6 @@ void descomprimir(const char *entrada, const char *saida)
     FILE *arquivo_s = fopen(saida, "wb");
     if(!arquivo_s)
         error_file();
-
-    fread(bytes, 256. sizeof(bytes[0]), entrada);
-    //implementar a função Arv_Huffman_Build
-    Arv_Huffman_Build(raiz);
-    
-    unsigned tamanho;
-    fread(&tamanho, 1, sizeof(tamanho), entrada);
-
-    unsigned posicao = 0;
-    byte aux = 0;
-
-    //Enquanto for menor q tamanho
-    while(posicao < tamanho)
-    {
-        
-    }
     
 }
 //Função que printa no terminal o uso correto do programa caso tenha sido chamado de forma incorreta
