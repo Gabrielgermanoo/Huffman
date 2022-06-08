@@ -51,7 +51,7 @@ void compressed_file_header(FILE *arquivo_s, int lixo_mem, int tree_size)
     return;
 }
 
-bool pega_codigo(tree *n, byte c, char *buffer, int tamanho)
+bool codificar(tree *n, byte c, char *buffer, int tamanho)
 {
     if (!(n->left || n->right) && n->ch == c)
     {
@@ -64,17 +64,15 @@ bool pega_codigo(tree *n, byte c, char *buffer, int tamanho)
 
         if (n->left)
         {
-            // Adicione '0' no bucket do buffer correspondente ao 'tamanho' nodeAtual
             buffer[tamanho] = '0';
 
-            // fazer recursão no nó esquerdo
-            encontrado = pega_codigo(n->left, c, buffer, tamanho + 1);
+            encontrado = codificar(n->left, c, buffer, tamanho + 1);
         }
 
         if (!encontrado && n->right)
         {
             buffer[tamanho] = '1';
-            encontrado = pega_codigo(n->right, c, buffer, tamanho + 1);
+            encontrado = codificar(n->right, c, buffer, tamanho + 1);
         }
         if (!encontrado)
         {
@@ -228,7 +226,7 @@ void comprimir(const char *entrada, const char *saida)
     tamanho_arvore_huff(hufftree, &tamanho_arvore, str);
 
     fwrite(&null, 2, 1, arquivo_s);
-    
+
     for(int i=0; i<1000; i++)
     {
         char c = str[i];
@@ -243,7 +241,7 @@ void comprimir(const char *entrada, const char *saida)
     {
         char buffer[1024] = {0};
     
-        pega_codigo(hufftree, ch, buffer, 0);
+        codificar(hufftree, ch, buffer, 0);
 
         // Laço que percorre o buffer
         for (int i = 0; i < strlen(buffer); i++)
@@ -255,7 +253,6 @@ void comprimir(const char *entrada, const char *saida)
 
             if(tamanho % 8 == 0){
                 fwrite(&aux, 1, 1, arquivo_s);
-                printf("%d\n", aux);
                 aux = 0;
                 tamanho = 0;
             }
@@ -263,7 +260,8 @@ void comprimir(const char *entrada, const char *saida)
     }
 
     // Escreve no arquivo o que sobrou
-    fwrite(&aux, 1, 1, arquivo_s);
+    if(!(tamanho==0))
+        fwrite(&aux, 1, 1, arquivo_s);
 
     compressed_file_header(arquivo_s, 8-tamanho, tamanho_arvore);
     fclose(arquivo_e);
