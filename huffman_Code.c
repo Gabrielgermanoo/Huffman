@@ -96,6 +96,7 @@ void tamanho_arvore_huff(tree* node, int *tamanho, char *string)
 //Função que remove o primeiro item da fila de prioridade
 tree *dequeue(queue *q)
 {
+    if(!q->tamanho) return NULL;
     node_pq *aux = q->head;
     tree *aux_2 = aux->node;
     
@@ -154,22 +155,26 @@ tree* huffman_tree(unsigned int *bytes)
 {
     //Cabeça da fila de prioridade implementada como lista encadeada
     queue queue = {NULL, 0};
-
+    
     for(int i=0; i<256; i++)
     {
         if(bytes[i])
             insert(new_node(new_tree_node(i, bytes[i], NULL, NULL)), &queue);
     }
-    
-    while(queue.tamanho > 1)
+
+    bool flag_insert = false;
+    while(queue.tamanho > 1 || !flag_insert)
     {
         tree *left_child = dequeue(&queue);
         tree *right_child = dequeue(&queue);
-        tree *soma = new_tree_node('*', left_child->freq + right_child->freq, left_child, right_child);
+        tree *soma = new_tree_node('*', (left_child == NULL ? 0 : left_child->freq) + 
+        (right_child == NULL ? 0 : right_child->freq), left_child, right_child);
         insert(new_node(soma), &queue);
+
+        flag_insert = true;
     }
     
-    return dequeue(&queue);
+    return (queue.head == NULL ? NULL : dequeue(&queue));
     
 }
 
