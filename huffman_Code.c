@@ -33,11 +33,6 @@ typedef struct _priority_queue{
     int         tamanho;
 } queue;
 
-byte set_bit(byte c, int i)
-{
-    return c | 1 << i;
-}
-
 void compressed_file_header(FILE *arquivo_s, int lixo_mem, int tree_size)
 {
     rewind(arquivo_s);
