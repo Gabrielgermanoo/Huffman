@@ -127,59 +127,18 @@ void error_file()
     exit(EXIT_SUCCESS);
 }
 
-//TO DO: FAZER ESSA FUNÇÃO
-void comprimir(const char *entrada, const char *saida)
-{
-    unsigned int bytes[256] = {0};
-    tree *hufftree;
-
-    FILE *arquivo_e = fopen(entrada, "rb");
-    if(!arquivo_e)
-        error_file();
-
-    FILE *arquivo_s = fopen(saida, "wb");
-    if(!arquivo_s)
-        error_file();
-    
-    buscando_frequencias(arquivo_e, bytes);
-
-    hufftree = huffman_tree(bytes);
-    
-
-    byte ch, aux = 0;
-    unsigned int tamanho = 0;
-
-    fclose(arquivo_e);
-    fclose(arquivo_s);
-}
-void *FreeTree(_nodearvore *node)
+void FreeTree(tree *node)
 {
     //caso base da recursão
     if(!node) return;
     else
     {
-        _nodearvore *left = node->left;
-        _nodearvore *right = node->right;
+        tree *left = node->left;
+        tree *right = node->right;
         free(node);
         FreeTree(left);
         FreeTree(right);
     }
-}
-
-//Função que scaneia o arquivo e armazena no array "bytes" as frequências de cada byte scaneado
-void buscando_frequencias(FILE *entrada, unsigned int *bytes)
-{
-    byte b;
-    while(fread(&b, 1, 1, entrada))
-        bytes[(byte)b]++;
-    rewind(entrada); //void rewind(FILE *stream) = volta a stream FILE *entrada para o começo do arquivo
-}
-
-//Função que exibe uma mensagem de erro caso o programa não consiga localizar um arquivo e em seguida o encerra
-void error_file()
-{
-    printf("--------------------\nErro ao encontrar o arquivo, por favor verifique se o arquivo esta no diretorio correto\n--------------------");
-    exit(EXIT_SUCCESS);
 }
 
 //TO DO: FAZER ESSA FUNÇÃO
@@ -199,7 +158,7 @@ void comprimir(const char *entrada, const char *saida)
 
     buscando_frequencias(arquivo_e, bytes);
     hufftree = huffman_tree(bytes);
-    
+
     byte ch, aux = 0;
     unsigned int tamanho = 0;
 
@@ -211,7 +170,7 @@ void comprimir(const char *entrada, const char *saida)
 //TO DO: FAZER ESSA FUNÇÃO
 void descomprimir(const char *entrada, const char *saida)
 {
-    _nodearvore *raiz = NULL;
+    tree *raiz = NULL;
     printf("%s\n%s\n", entrada, saida);
     unsigned int bytes[256] = {0};
 
