@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdbool.h>
 
 //O unsigned char servirá para representar o byte
 typedef unsigned char byte;
@@ -19,17 +20,80 @@ typedef struct _nodearvore{
     struct _nodearvore    *left,*right;
 } tree;
 
-// FILA DE PRIORIDADE
+// NODE DA FILA DE PRIORIDADE
 // node = tree / next = node_pq
 typedef struct _priority_queue_node{
     struct _priority_queue_node     *next;
     struct _nodearvore              *node;
 } node_pq;
 
+//FILA DE PRIORIDADE
 typedef struct _priority_queue{
     node_pq     *head;
     int         tamanho;
 } queue;
+
+byte set_bit(byte c, int i)
+{
+    return c | 1 << i;
+}
+
+void compressed_file_header(FILE *arquivo_s, int lixo_mem, int tree_size)
+{
+    rewind(arquivo_s);
+    byte b = lixo_mem;
+    b = b << 5;
+    b = b | (byte)(tree_size>>8);
+    byte seg_b = (byte)tree_size;
+
+    fwrite(&b, sizeof(byte), 1, arquivo_s);   
+    fwrite(&seg_b, sizeof(byte), 1, arquivo_s);   
+    return;
+}
+
+bool pega_codigo(tree *n, byte c, char *buffer, int tamanho)
+{
+    if (!(n->left || n->right) && n->ch == c)
+    {
+        buffer[tamanho] = '\0';
+        return true;
+    }
+    else
+    {
+        bool encontrado = false;
+
+        if (n->left)
+        {
+            // Adicione '0' no bucket do buffer correspondente ao 'tamanho' nodeAtual
+            buffer[tamanho] = '0';
+
+            // fazer recursão no nó esquerdo
+            encontrado = pega_codigo(n->left, c, buffer, tamanho + 1);
+        }
+
+        if (!encontrado && n->right)
+        {
+            buffer[tamanho] = '1';
+            encontrado = pega_codigo(n->right, c, buffer, tamanho + 1);
+        }
+        if (!encontrado)
+        {
+            buffer[tamanho] = '\0';
+        }
+        return encontrado;
+    }
+
+}
+
+void tamanho_arvore_huff(tree* node, int *tamanho, char *string)
+{
+    if (node == NULL)
+        return;
+    string[*tamanho] = node->ch;
+    *tamanho += 1;
+    tamanho_arvore_huff(node->left, tamanho, string);
+    tamanho_arvore_huff(node->right, tamanho, string);
+}
 
 //Função que remove o primeiro item da fila de prioridade
 tree *dequeue(queue *q)
@@ -77,7 +141,8 @@ void insert(node_pq *node, queue *q)
     else{
         node_pq *aux = q->head;
         while(aux->next != NULL){
-            if(node->node->freq <= aux->next->node->freq) break;
+            if(node->node->freq <= aux->next->node->freq) 
+                break;
             aux = aux->next;
         }
 
@@ -127,7 +192,7 @@ void error_file()
     exit(EXIT_SUCCESS);
 }
 
-void FreeTree(tree *node)
+void free_huffman_tree(tree *node)
 {
     //caso base da recursão
     if(!node) return;
@@ -136,17 +201,17 @@ void FreeTree(tree *node)
         tree *left = node->left;
         tree *right = node->right;
         free(node);
-        FreeTree(left);
-        FreeTree(right);
+        free_huffman_tree(left);
+        free_huffman_tree(right);
     }
 }
 
 //TO DO: FAZER ESSA FUNÇÃO
 void comprimir(const char *entrada, const char *saida)
 {
-    printf("%s\n%s\n", entrada, saida);
     unsigned int bytes[256] = {0};
     tree *hufftree;
+    byte null = 0;
 
     FILE *arquivo_e = fopen(entrada, "rb");
     if(!arquivo_e)
@@ -158,10 +223,49 @@ void comprimir(const char *entrada, const char *saida)
 
     buscando_frequencias(arquivo_e, bytes);
     hufftree = huffman_tree(bytes);
+    int tamanho_arvore = 0;
+    char str[1000] = {'\0'};
+    tamanho_arvore_huff(hufftree, &tamanho_arvore, str);
+
+    fwrite(&null, 2, 1, arquivo_s);
+    
+    for(int i=0; i<1000; i++)
+    {
+        char c = str[i];
+        if(c == '\0')
+            break;
+        fwrite(&c, 1, 1, arquivo_s);
+    }
 
     byte ch, aux = 0;
     unsigned int tamanho = 0;
+    while (fread(&ch, 1, 1, arquivo_e) >= 1)
+    {
+        char buffer[1024] = {0};
+    
+        pega_codigo(hufftree, ch, buffer, 0);
 
+        // Laço que percorre o buffer
+        for (int i = 0; i < strlen(buffer); i++)
+        {
+            if(buffer[i] == '1')
+                aux = aux | 128 >> tamanho;
+
+            tamanho++;
+
+            if(tamanho % 8 == 0){
+                fwrite(&aux, 1, 1, arquivo_s);
+                printf("%d\n", aux);
+                aux = 0;
+                tamanho = 0;
+            }
+        }
+    }
+
+    // Escreve no arquivo o que sobrou
+    fwrite(&aux, 1, 1, arquivo_s);
+
+    compressed_file_header(arquivo_s, 8-tamanho, tamanho_arvore);
     fclose(arquivo_e);
     fclose(arquivo_s);
 
@@ -171,7 +275,6 @@ void comprimir(const char *entrada, const char *saida)
 void descomprimir(const char *entrada, const char *saida)
 {
     tree *raiz = NULL;
-    printf("%s\n%s\n", entrada, saida);
     unsigned int bytes[256] = {0};
 
     FILE *arquivo_e = fopen(entrada, "rb");
