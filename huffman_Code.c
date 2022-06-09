@@ -6,9 +6,6 @@
 //O unsigned char servirá para representar o byte
 typedef unsigned char byte;
 
-//O unsigned char servirá para representar o byte
-typedef unsigned char byte;
-
 /*  ÁRVORE DE HUFFMAN
     freq = int
     ch = byte
