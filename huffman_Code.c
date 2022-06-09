@@ -6,6 +6,9 @@
 //O unsigned char servirá para representar o byte
 typedef unsigned char byte;
 
+//O unsigned char servirá para representar o byte
+typedef unsigned char byte;
+
 /*  ÁRVORE DE HUFFMAN
     freq = int
     ch = byte
@@ -45,7 +48,7 @@ void compressed_file_header(FILE *arquivo_s, int lixo_mem, int tree_size)
 
 bool codificar(tree *n, byte c, char *buffer, int tamanho)
 {
-    if (!(n->left || n->right) && n->ch == c)
+    if ((n->left == NULL|| n->right == NULL) && n->ch == c)
     {
         buffer[tamanho] = '\0';
         return true;
@@ -61,7 +64,7 @@ bool codificar(tree *n, byte c, char *buffer, int tamanho)
             encontrado = codificar(n->left, c, buffer, tamanho + 1);
         }
 
-        if (!encontrado && n->right)
+        if (!encontrado && n->right != NULL)
         {
             buffer[tamanho] = '1';
             encontrado = codificar(n->right, c, buffer, tamanho + 1);
@@ -75,18 +78,24 @@ bool codificar(tree *n, byte c, char *buffer, int tamanho)
 
 }
 
-void tamanho_arvore_huff(tree* node, int *tamanho, char *string)
+void tamanho_arvore_huff(tree* node, char *string, int *x)
 {
     if (node == NULL)
         return;
-    string[*tamanho] = node->ch;
-    *tamanho += 1;
-    tamanho_arvore_huff(node->left, tamanho, string);
-    tamanho_arvore_huff(node->right, tamanho, string);
+    char escape = '\\';
+    if(node->left == NULL && node->right == NULL && (node->ch == '*' || node->ch == '\\')){
+        ++*x;
+        strncat(string, &escape, 1);
+    }
+    ++*x;
+    strncat(string, &node->ch, 1);
+    tamanho_arvore_huff(node->left, string, x);
+    tamanho_arvore_huff(node->right, string, x);
+    return;
 }
 
 //Função que remove o primeiro item da fila de prioridade
-tree *deque(queue *q)
+tree *dequeue(queue *q)
 {
     if(!q->tamanho) return NULL;
     node_pq *aux = q->head;
@@ -143,10 +152,7 @@ void insert(node_pq *node, queue *q)
     q->tamanho++;
 }
 
-/**
- * Função para criar a arvore de huffman (inserção nos nós) 
-*/
-tree* huffman_tree(unsigned int *bytes)
+tree* huffman_tree(unsigned long *bytes)
 {
     //Cabeça da fila de prioridade implementada como lista encadeada
     queue queue = {NULL, 0};
@@ -154,14 +160,14 @@ tree* huffman_tree(unsigned int *bytes)
     for(int i=0; i<256; i++)
     {
         if(bytes[i])
-            insert(new_node(new_tree_node(i, bytes[i], NULL, NULL)), &queue);
+            insert(new_node(new_tree_node(i, (byte)bytes[i], NULL, NULL)), &queue);
     }
 
     bool flag_insert = false;
     while(queue.tamanho > 1 || !flag_insert)
     {
-        tree *left_child = deque(&queue);
-        tree *right_child = deque(&queue);
+        tree *left_child = dequeue(&queue);
+        tree *right_child = dequeue(&queue);
         tree *soma = new_tree_node('*', (left_child == NULL ? 0 : left_child->freq) + 
         (right_child == NULL ? 0 : right_child->freq), left_child, right_child);
         insert(new_node(soma), &queue);
@@ -169,12 +175,12 @@ tree* huffman_tree(unsigned int *bytes)
         flag_insert = true;
     }
     
-    return (queue.head == NULL ? NULL : deque(&queue));
+    return (queue.head == NULL ? NULL : dequeue(&queue));
     
 }
 
 //Função que scaneia o arquivo e armazena no array "bytes" as frequências de cada byte scaneado
-void buscando_frequencias(FILE *entrada, unsigned int *bytes)
+void buscando_frequencias(FILE *entrada, unsigned long *bytes)
 {
     byte b;
     while(fread(&b, 1, 1, entrada))
@@ -207,8 +213,9 @@ void free_huffman_tree(tree *node)
 //TO DO: FAZER ESSA FUNÇÃO
 void comprimir(const char *entrada, const char *saida)
 {
-    unsigned int bytes[256] = {0};
+    unsigned long bytes[256] = {0};
     tree *hufftree;
+    byte escape = '\\';
     byte null = 0;
 
     FILE *arquivo_e = fopen(entrada, "rb");
@@ -223,7 +230,8 @@ void comprimir(const char *entrada, const char *saida)
     hufftree = huffman_tree(bytes);
     int tamanho_arvore = 0;
     char str[1000] = {'\0'};
-    tamanho_arvore_huff(hufftree, &tamanho_arvore, str);
+
+    tamanho_arvore_huff(hufftree, str, &tamanho_arvore);
 
     fwrite(&null, 2, 1, arquivo_s);
 
@@ -236,14 +244,13 @@ void comprimir(const char *entrada, const char *saida)
     }
 
     byte ch, aux = 0;
-    unsigned int tamanho = 0;
+    short tamanho = 0;
     while (fread(&ch, 1, 1, arquivo_e) >= 1)
     {
-        char buffer[1024] = {0};
+        char buffer[1024] = {'\0'};
     
         codificar(hufftree, ch, buffer, 0);
 
-        // Laço que percorre o buffer
         for (int i = 0; i < strlen(buffer); i++)
         {
             if(buffer[i] == '1')
@@ -258,12 +265,12 @@ void comprimir(const char *entrada, const char *saida)
             }
         }
     }
-
     // Escreve no arquivo o que sobrou
-    if(!(tamanho==0))
+    if(tamanho > 0)
         fwrite(&aux, 1, 1, arquivo_s);
+    free_huffman_tree(hufftree);
+    compressed_file_header(arquivo_s, (tamanho > 0) ? 8 - tamanho : 0, tamanho_arvore);
 
-    compressed_file_header(arquivo_s, 8-tamanho, tamanho_arvore);
     fclose(arquivo_e);
     fclose(arquivo_s);
 
