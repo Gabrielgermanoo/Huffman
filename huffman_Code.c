@@ -6,9 +6,6 @@
 //O unsigned char servirá para representar o byte
 typedef unsigned char byte;
 
-//O unsigned char servirá para representar o byte
-typedef unsigned char byte;
-
 /*  ÁRVORE DE HUFFMAN
     freq = int
     ch = byte
@@ -89,7 +86,7 @@ void tamanho_arvore_huff(tree* node, int *tamanho, char *string)
 }
 
 //Função que remove o primeiro item da fila de prioridade
-tree *dequeue(queue *q)
+tree *deque(queue *q)
 {
     if(!q->tamanho) return NULL;
     node_pq *aux = q->head;
@@ -146,6 +143,9 @@ void insert(node_pq *node, queue *q)
     q->tamanho++;
 }
 
+/**
+ * Função para criar a arvore de huffman (inserção nos nós) 
+*/
 tree* huffman_tree(unsigned int *bytes)
 {
     //Cabeça da fila de prioridade implementada como lista encadeada
@@ -160,8 +160,8 @@ tree* huffman_tree(unsigned int *bytes)
     bool flag_insert = false;
     while(queue.tamanho > 1 || !flag_insert)
     {
-        tree *left_child = dequeue(&queue);
-        tree *right_child = dequeue(&queue);
+        tree *left_child = deque(&queue);
+        tree *right_child = deque(&queue);
         tree *soma = new_tree_node('*', (left_child == NULL ? 0 : left_child->freq) + 
         (right_child == NULL ? 0 : right_child->freq), left_child, right_child);
         insert(new_node(soma), &queue);
@@ -169,7 +169,7 @@ tree* huffman_tree(unsigned int *bytes)
         flag_insert = true;
     }
     
-    return (queue.head == NULL ? NULL : dequeue(&queue));
+    return (queue.head == NULL ? NULL : deque(&queue));
     
 }
 
