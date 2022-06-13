@@ -8,11 +8,11 @@ typedef unsigned char byte;
 
 /*  ÁRVORE DE HUFFMAN
     freq = int
-    ch = byte
+    ch = bytef
     left, right = tree*
 */
 typedef struct _nodearvore{
-    int                    freq;
+    int                   freq;
     byte                   ch;
     struct _nodearvore    *left,*right;
 } tree;
@@ -30,28 +30,41 @@ typedef struct _priority_queue{
     int         tamanho;
 } queue;
 
-void compressed_file_header(FILE *arquivo_s, int lixo_mem, int tree_size)
+void header_compress(FILE *arquivo_s, int lixo_mem, int tree_size)
 {
     rewind(arquivo_s);
     byte b = lixo_mem;
     b = b << 5;
-    b = b | (byte)(tree_size>>8);
-    byte seg_b = (byte)tree_size;
+    b = b | tree_size >> 8;
+    byte seg_b = tree_size;
 
     fwrite(&b, sizeof(byte), 1, arquivo_s);   
     fwrite(&seg_b, sizeof(byte), 1, arquivo_s);   
     return;
 }
 
+void header_decompress(FILE *arquivo_e, short int *tree_size, short int *trash_size)
+{
+    byte header[2];
+    header[1] = fgetc(arquivo_e);
+	header[0] = fgetc(arquivo_e);
+
+    byte tr = header[1] >> 5;
+    memcpy(trash_size, &tr, 1);
+
+	header[1] = header[1] << 3;
+	header[1] = header[1] >> 3;
+
+	memcpy(tree_size, header, 2);
+}
+
 bool codificar(tree *n, byte c, char *buffer, int tamanho)
 {
-    if ((n->left == NULL|| n->right == NULL) && n->ch == c)
-    {
+    if ((n->left == NULL || n->right == NULL) && n->ch == c){
         buffer[tamanho] = '\0';
         return true;
     }
-    else
-    {
+    else{
         bool encontrado = false;
 
         if (n->left)
@@ -61,7 +74,7 @@ bool codificar(tree *n, byte c, char *buffer, int tamanho)
             encontrado = codificar(n->left, c, buffer, tamanho + 1);
         }
 
-        if (!encontrado && n->right != NULL)
+        if (!encontrado && n->right)
         {
             buffer[tamanho] = '1';
             encontrado = codificar(n->right, c, buffer, tamanho + 1);
@@ -72,22 +85,23 @@ bool codificar(tree *n, byte c, char *buffer, int tamanho)
         }
         return encontrado;
     }
-
 }
 
-void tamanho_arvore_huff(tree* node, char *string, int *x)
+void tamanho_arvore_huff(FILE *saida, tree* node, short *x)
 {
     if (node == NULL)
         return;
     char escape = '\\';
-    if(node->left == NULL && node->right == NULL && (node->ch == '*' || node->ch == '\\')){
+    if((node->left == NULL && node->right == NULL) && (node->ch == '*' || node->ch == '\\')){
         ++*x;
-        strncat(string, &escape, 1);
+        fwrite(&escape, 1, 1, saida);
     }
+
     ++*x;
-    strncat(string, &node->ch, 1);
-    tamanho_arvore_huff(node->left, string, x);
-    tamanho_arvore_huff(node->right, string, x);
+    fwrite(&node->ch, 1, 1, saida);
+
+    tamanho_arvore_huff(saida, node->left, x);
+    tamanho_arvore_huff(saida, node->right, x);
     return;
 }
 
@@ -149,18 +163,20 @@ void insert(node_pq *node, queue *q)
     q->tamanho++;
 }
 
+//Constrói a árvore de huffman através das frequências
 tree* huffman_tree(unsigned long *bytes)
 {
-    //Cabeça da fila de prioridade implementada como lista encadeada
+    //fila de prioridade implementada como lista encadeada
     queue queue = {NULL, 0};
     
+    //Passa pelo array de bytes e adiciona as frequências
     for(int i=0; i<256; i++)
     {
         if(bytes[i])
-            insert(new_node(new_tree_node(i, (byte)bytes[i], NULL, NULL)), &queue);
+            insert(new_node(new_tree_node(i, bytes[i], NULL, NULL)), &queue);
     }
 
-    bool flag_insert = false;
+    int flag_insert = 0;
     while(queue.tamanho > 1 || !flag_insert)
     {
         tree *left_child = dequeue(&queue);
@@ -169,11 +185,9 @@ tree* huffman_tree(unsigned long *bytes)
         (right_child == NULL ? 0 : right_child->freq), left_child, right_child);
         insert(new_node(soma), &queue);
 
-        flag_insert = true;
+        flag_insert = 1;
     }
-    
-    return (queue.head == NULL ? NULL : dequeue(&queue));
-    
+    return queue.head->node;
 }
 
 //Função que scaneia o arquivo e armazena no array "bytes" as frequências de cada byte scaneado
@@ -181,7 +195,7 @@ void buscando_frequencias(FILE *entrada, unsigned long *bytes)
 {
     byte b;
     while(fread(&b, 1, 1, entrada))
-        bytes[(byte)b]++;
+        bytes[b]++;
     //void rewind(FILE *stream) = volta a stream FILE *entrada para o começo do arquivo
     rewind(entrada); 
 }
@@ -193,6 +207,7 @@ void error_file()
     exit(EXIT_SUCCESS);
 }
 
+//Libera a memória da árvore de huffman
 void free_huffman_tree(tree *node)
 {
     //caso base da recursão
@@ -207,47 +222,39 @@ void free_huffman_tree(tree *node)
     }
 }
 
-//TO DO: FAZER ESSA FUNÇÃO
+//Comprime o arquivo selecionado e escreve o output no arquivo X.huffman
 void comprimir(const char *entrada, const char *saida)
 {
     unsigned long bytes[256] = {0};
-    tree *hufftree;
+    tree *hufftree = NULL;
     byte escape = '\\';
     byte null = 0;
 
     FILE *arquivo_e = fopen(entrada, "rb");
     if(!arquivo_e)
         error_file();
-
+    FILE *arquivo_t = fopen("decompresstest.txt", "wb");
     FILE *arquivo_s = fopen(saida, "wb");
     if(!arquivo_s)
         error_file();
+    printf("--------------------\nIniciando compressao...\n");
 
     buscando_frequencias(arquivo_e, bytes);
     hufftree = huffman_tree(bytes);
-    int tamanho_arvore = 0;
-    char str[1000] = {'\0'};
 
-    tamanho_arvore_huff(hufftree, str, &tamanho_arvore);
-
+    short tamanho_arvore = 0;
+    
     fwrite(&null, 2, 1, arquivo_s);
+    tamanho_arvore_huff(arquivo_s, hufftree, &tamanho_arvore);
 
-    for(int i=0; i<1000; i++)
-    {
-        char c = str[i];
-        if(c == '\0')
-            break;
-        fwrite(&c, 1, 1, arquivo_s);
-    }
-
-    byte ch, aux = 0;
+    byte ch;
+    byte aux = 0;
     short tamanho = 0;
     while (fread(&ch, 1, 1, arquivo_e) >= 1)
     {
-        char buffer[1024] = {'\0'};
+        char buffer[1024] = {'0'};
     
         codificar(hufftree, ch, buffer, 0);
-
         for (int i = 0; i < strlen(buffer); i++)
         {
             if(buffer[i] == '1')
@@ -262,22 +269,50 @@ void comprimir(const char *entrada, const char *saida)
             }
         }
     }
-    // Escreve no arquivo o que sobrou
     if(tamanho > 0)
         fwrite(&aux, 1, 1, arquivo_s);
-    free_huffman_tree(hufftree);
-    compressed_file_header(arquivo_s, (tamanho > 0) ? 8 - tamanho : 0, tamanho_arvore);
 
+    free_huffman_tree(hufftree);
+    header_compress(arquivo_s, (tamanho > 0) ? 8 - tamanho : 0, tamanho_arvore);
+    printf("Compressao concluida! Confira o arquivo comprimido em %s\n--------------------", saida);
     fclose(arquivo_e);
     fclose(arquivo_s);
 
 }
 
+//Reconstrói a árvore de huffman através do arquivo comprimido
+tree* rebuild_hufftree(FILE *arq, tree *huff_tree, short *huff_tree_size)
+{
+    if(*huff_tree_size > 0)
+    {
+        byte b = fgetc(arq);
+		*huff_tree_size -= 1;
+
+        if(b == '*')
+        {
+            huff_tree = new_tree_node('*', 0, NULL, NULL);
+            huff_tree->left = rebuild_hufftree(arq, huff_tree->left, huff_tree_size);
+			huff_tree->right = rebuild_hufftree(arq, huff_tree->right, huff_tree_size);
+        }
+        else
+        {
+            if(b == '\\')
+			{
+				b = fgetc(arq);
+				*huff_tree_size -= 1;
+			}
+			huff_tree = new_tree_node(b, 0, NULL, NULL);
+        }
+    }
+	return huff_tree;
+}
+
+
 //TO DO: FAZER ESSA FUNÇÃO
 void descomprimir(const char *entrada, const char *saida)
 {
-    tree *raiz = NULL;
-    unsigned int bytes[256] = {0};
+    tree *hufftree = NULL;
+    short tree_size = 0, trash_size = 0;
 
     FILE *arquivo_e = fopen(entrada, "rb");
     if(!arquivo_e)
@@ -286,6 +321,9 @@ void descomprimir(const char *entrada, const char *saida)
     FILE *arquivo_s = fopen(saida, "wb");
     if(!arquivo_s)
         error_file();
+
+    header_decompress(arquivo_e, &tree_size, &trash_size);
+    hufftree = rebuild_hufftree(arquivo_e, hufftree, &tree_size);
     
 }
 //Função que printa no terminal o uso correto do programa caso tenha sido chamado de forma incorreta
@@ -302,7 +340,7 @@ void error_param()
 // argv[] = array de strings que contém os parâmetros passados para o programa
 int main(int argc, char *argv[])
 {
-    if(argc < 4){
+    if(argc < 4 || argc > 4){
         error_param();
         return 0;
     }
