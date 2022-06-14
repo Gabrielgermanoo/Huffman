@@ -1,7 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <stdbool.h>
 
 //O unsigned char servirá para representar o byte
 typedef unsigned char byte;
@@ -58,14 +57,14 @@ void header_decompress(FILE *arquivo_e, short int *tree_size, short int *trash_s
 	memcpy(tree_size, header, 2);
 }
 
-bool codificar(tree *n, byte c, char *buffer, int tamanho)
+int codificar(tree *n, byte c, char *buffer, int tamanho)
 {
     if ((n->left == NULL || n->right == NULL) && n->ch == c){
         buffer[tamanho] = '\0';
-        return true;
+        return 1;
     }
     else{
-        bool encontrado = false;
+        int encontrado = 0;
 
         if (n->left)
         {
@@ -161,6 +160,7 @@ void insert(node_pq *node, queue *q)
         aux->next = node;
     }
     q->tamanho++;
+    return;
 }
 
 //Constrói a árvore de huffman através das frequências
@@ -198,6 +198,7 @@ void buscando_frequencias(FILE *entrada, unsigned long *bytes)
         bytes[b]++;
     //void rewind(FILE *stream) = volta a stream FILE *entrada para o começo do arquivo
     rewind(entrada); 
+    return;
 }
 
 //Função que exibe uma mensagem de erro caso o programa não consiga localizar um arquivo e em seguida o encerra
@@ -220,6 +221,7 @@ void free_huffman_tree(tree *node)
         free_huffman_tree(left);
         free_huffman_tree(right);
     }
+    return;
 }
 
 //Comprime o arquivo selecionado e escreve o output no arquivo X.huffman
@@ -281,30 +283,19 @@ void comprimir(const char *entrada, const char *saida)
 }
 
 //Reconstrói a árvore de huffman através do arquivo comprimido
-tree* rebuild_hufftree(FILE *arq, tree *huff_tree, short *huff_tree_size)
+tree* rebuild_hufftree(char *string_tree, short *x)
 {
-    if(*huff_tree_size > 0)
-    {
-        byte b = fgetc(arq);
-		*huff_tree_size -= 1;
-
-        if(b == '*')
-        {
-            huff_tree = new_tree_node('*', 0, NULL, NULL);
-            huff_tree->left = rebuild_hufftree(arq, huff_tree->left, huff_tree_size);
-			huff_tree->right = rebuild_hufftree(arq, huff_tree->right, huff_tree_size);
-        }
-        else
-        {
-            if(b == '\\')
-			{
-				b = fgetc(arq);
-				*huff_tree_size -= 1;
-			}
-			huff_tree = new_tree_node(b, 0, NULL, NULL);
-        }
+    if(string_tree[*x] == '*'){
+        ++*x;
+        tree *left_child = rebuild_hufftree(string_tree, x);
+        ++*x;
+        return new_tree_node('*', 0, left_child, rebuild_hufftree(string_tree, x));
     }
-	return huff_tree;
+    else if(string_tree[*x] == '\\'){
+        ++*x;
+        return new_tree_node(string_tree[*x], 0, NULL, NULL);
+    }
+    return new_tree_node(string_tree[*x], 0, NULL, NULL);
 }
 
 
@@ -312,7 +303,8 @@ tree* rebuild_hufftree(FILE *arq, tree *huff_tree, short *huff_tree_size)
 void descomprimir(const char *entrada, const char *saida)
 {
     tree *hufftree = NULL;
-    short tree_size = 0, trash_size = 0;
+    short tree_size = 0, trash_size = 0, mark = 0;
+    char string_tree[513] = {0};
 
     FILE *arquivo_e = fopen(entrada, "rb");
     if(!arquivo_e)
@@ -323,8 +315,21 @@ void descomprimir(const char *entrada, const char *saida)
         error_file();
 
     header_decompress(arquivo_e, &tree_size, &trash_size);
-    hufftree = rebuild_hufftree(arquivo_e, hufftree, &tree_size);
+    fread(string_tree, 1, tree_size, arquivo_e);
     
+    //Após a árvore ter sido reconstruida, cria-se uma árvore auxiliar(huff_nav) que será utilizada para navegar com o 
+    //buffer_byte até encontrar uma folha
+    hufftree = rebuild_hufftree(string_tree, &mark);
+    tree *huff_nav = hufftree;
+    
+    byte buffer_byte;
+    while(1)
+    {
+        buffer_byte = fgetc(arquivo_e);
+        if(feof(arquivo_e))
+            break;
+        fwrite(&buffer_byte, 1, 1, arquivo_s);
+    }
 }
 //Função que printa no terminal o uso correto do programa caso tenha sido chamado de forma incorreta
 void error_param()
