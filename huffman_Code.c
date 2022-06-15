@@ -227,6 +227,7 @@ void free_huffman_tree(tree *node)
 //Comprime o arquivo selecionado e escreve o output no arquivo X.huffman
 void comprimir(const char *entrada, const char *saida)
 {
+    
     unsigned long bytes[256] = {0};
     tree *hufftree = NULL;
     byte escape = '\\';
@@ -235,12 +236,12 @@ void comprimir(const char *entrada, const char *saida)
     FILE *arquivo_e = fopen(entrada, "rb");
     if(!arquivo_e)
         error_file();
-    FILE *arquivo_t = fopen("decompresstest.txt", "wb");
+
     FILE *arquivo_s = fopen(saida, "wb");
     if(!arquivo_s)
         error_file();
-    printf("--------------------\nIniciando compressao...\n");
-
+    
+    printf("------------------------------------------------------------\n ,--.  ,--.,--. ,--.,------.,------.,--.   ,--.  ,---.  ,--.  ,--.\n |  '--'  ||  | |  ||  .---'|  .---'|   `.'   | /  O  \\ |  ,'.|  |\n |  .--.  ||  | |  ||  `--, |  `--, |  |'.'|  ||  .-.  ||  |' '  |\n |  |  |  |'  '-'  '|  |`   |  |`   |  |   |  ||  | |  ||  | `   |\n `--'  `--' `-----' `--'    `--'    `--'   `--'`--' `--'`--'  `--'\n\nIniciando compressao...\n");
     buscando_frequencias(arquivo_e, bytes);
     hufftree = huffman_tree(bytes);
 
@@ -276,10 +277,16 @@ void comprimir(const char *entrada, const char *saida)
 
     free_huffman_tree(hufftree);
     header_compress(arquivo_s, (tamanho > 0) ? 8 - tamanho : 0, tamanho_arvore);
-    printf("Compressao concluida! Confira o arquivo comprimido em %s\n--------------------", saida);
+    printf("Compressao concluida! Confira o arquivo comprimido em %s\n------------------------------------------------------------", saida);
     fclose(arquivo_e);
     fclose(arquivo_s);
 
+}
+
+int is_bit_set(byte b, int x)
+{
+    byte mask = 1 << x;
+    return mask & b; 
 }
 
 //Reconstrói a árvore de huffman através do arquivo comprimido
@@ -313,7 +320,7 @@ void descomprimir(const char *entrada, const char *saida)
     FILE *arquivo_s = fopen(saida, "wb");
     if(!arquivo_s)
         error_file();
-
+    printf("------------------------------------------------------------\n ,--.  ,--.,--. ,--.,------.,------.,--.   ,--.  ,---.  ,--.  ,--.\n |  '--'  ||  | |  ||  .---'|  .---'|   `.'   | /  O  \\ |  ,'.|  |\n |  .--.  ||  | |  ||  `--, |  `--, |  |'.'|  ||  .-.  ||  |' '  |\n |  |  |  |'  '-'  '|  |`   |  |`   |  |   |  ||  | |  ||  | `   |\n `--'  `--' `-----' `--'    `--'    `--'   `--'`--' `--'`--'  `--'\n\nIniciando descompressao...\n");
     header_decompress(arquivo_e, &tree_size, &trash_size);
     fread(string_tree, 1, tree_size, arquivo_e);
     
@@ -322,14 +329,43 @@ void descomprimir(const char *entrada, const char *saida)
     hufftree = rebuild_hufftree(string_tree, &mark);
     tree *huff_nav = hufftree;
     
-    byte buffer_byte;
+    byte buffer_byte = fgetc(arquivo_e), 
+         aux =         fgetc(arquivo_e);
     while(1)
     {
-        buffer_byte = fgetc(arquivo_e);
-        if(feof(arquivo_e))
+        if(feof(arquivo_e))     
             break;
-        fwrite(&buffer_byte, 1, 1, arquivo_s);
+
+        for(int i=7; i>=0; i--)
+        {
+            if(is_bit_set(buffer_byte, i))
+                huff_nav = huff_nav->right;
+            else
+                huff_nav = huff_nav->left;
+            if(huff_nav->right == NULL && huff_nav->left == NULL){
+                fwrite(&huff_nav->ch, 1, 1, arquivo_s);
+                huff_nav = hufftree;
+            }
+        }
+        buffer_byte = aux;
+        aux = fgetc(arquivo_e);
     }
+    for(int i=7; i>=trash_size; i--)
+    {
+            if(is_bit_set(buffer_byte, i))
+                huff_nav = huff_nav->right;
+            else
+                huff_nav = huff_nav->left;
+            if(huff_nav->right == NULL && huff_nav->left == NULL){
+                fwrite(&huff_nav->ch, 1, 1, arquivo_s);
+                huff_nav = hufftree;
+            }
+    }
+    printf("Descompressao concluida! Confira o arquivo descomprimido em %s\n------------------------------------------------------------", saida);
+    free_huffman_tree(hufftree);
+    fclose(arquivo_e);
+    fclose(arquivo_s);
+    
 }
 //Função que printa no terminal o uso correto do programa caso tenha sido chamado de forma incorreta
 void error_param()
@@ -350,8 +386,9 @@ int main(int argc, char *argv[])
         return 0;
     }
     if(!strcmp("-c", argv[1])){
-        if(strstr(argv[3], ".huffman"))
+        if(strstr(argv[3], ".huffman")){
             comprimir(argv[2], argv[3]);
+        }
         else
             error_param();
     }
