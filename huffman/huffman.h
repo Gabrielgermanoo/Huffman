@@ -38,6 +38,31 @@ void tamanho_arvore_huff(FILE *saida, tree* node, short *x);
 tree* huffman_tree(unsigned long *bytes);
 
 /**
+ * @brief Função que remove o primeiro item da fila de prioridade
+ * @param q 
+ * @return tree*
+ */
+tree *dequeue(queue *q);
+
+/**
+ * @brief Função que cria um novo nó na Árvore
+ * @param ch byte
+ * @param freq
+ * @param left 
+ * @param right 
+ * @return tree*
+ */
+tree *new_tree_node(byte ch, int freq, tree *left, tree *right);
+
+/**
+ * @brief função que cria um novo nó na fila de prioridade
+ * @param tree_node
+ * @return tree*
+ */
+node_pq *new_node(tree *tree_node);
+
+
+/**
  * @brief 
  * 
  * @param node 

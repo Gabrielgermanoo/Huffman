@@ -1,8 +1,14 @@
 #include <CUnit/CUnit.h>
 #include <CUnit/Basic.h>
 #include <CUnit/MyMem.h>
+#include "../queue/queue.h"
+#include "../huffman/huffman.h"
+#include "../util/util.h"
 #include <stdio.h>
 #include <stdlib.h>
+
+queue *NEW_QUEUE = NULL;
+tree *NEW_HUFF_ROOT = NULL;
 
 int init_suite(void) {
     return 0;
@@ -19,7 +25,9 @@ int clean_suite(void) {
 */
 void test_create_queue()
 {
-
+    //NEW_QUEUE = new_node()
+    //CU_ASSERT_PTR_NULL();
+    //CU_ASSERT_FALSE();
 }
 
 void test_push_queue()
