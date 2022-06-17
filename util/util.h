@@ -26,4 +26,18 @@ int is_bit_set(byte b, int x);
  */
 unsigned long long int get_file_size(char *filename);
 
+/**
+ * @brief Função que scaneia o arquivo e armazena no array "bytes" as frequências de cada byte scaneado
+ * 
+ * @param entrada 
+ * @param bytes 
+ */
+void buscando_frequencias(FILE *entrada, unsigned long *bytes);
+
+/**
+ * @brief Função que exibe uma mensagem de erro caso o programa não consiga localizar um arquivo e em seguida o encerra
+ * 
+ */
+void error_file();
+
 #endif

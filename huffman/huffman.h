@@ -63,7 +63,7 @@ node_pq *new_node(tree *tree_node);
 
 
 /**
- * @brief 
+ * @brief Função que "libera" a memória gerada pela árvore
  * 
  * @param node 
  */
