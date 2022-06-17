@@ -94,3 +94,18 @@ void free_huffman_tree(tree *node)
     }
     return;
 }
+
+tree* rebuild_hufftree(char *string_tree, short *x)
+{
+    if(string_tree[*x] == '*'){
+        ++*x;
+        tree *left_child = rebuild_hufftree(string_tree, x);
+        ++*x;
+        return new_tree_node('*', 0, left_child, rebuild_hufftree(string_tree, x));
+    }
+    else if(string_tree[*x] == '\\'){
+        ++*x;
+        return new_tree_node(string_tree[*x], 0, NULL, NULL);
+    }
+    return new_tree_node(string_tree[*x], 0, NULL, NULL);
+}
