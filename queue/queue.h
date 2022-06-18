@@ -40,4 +40,5 @@ struct _priority_queue
  */
 void insert(node_pq *node, queue *q);
 
+
 #endif

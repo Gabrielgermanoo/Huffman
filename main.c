@@ -1,42 +1,28 @@
 #include <stdio.h>
 #include "compress/compress.h"
 #include "decompress/decompress.h"
+#include "util/util.h"
 
-int main()
+int main(int argc, char *argv[])
 {
-    /*
-    //Criar opções para compressão e descompressão?
-    char filename[500];
-    int options = 0;
-
-    while(options != 3)
-    {
-        printf("Escolha uma opção\n1- Compressão;\n2- Descompressão;\n3 - Sair");
-        scanf("%d", &options);
-        switch(options)
-        {
-            case 1:
-
-                break;
-            case 2:
-
-                break;
-            case 3:
-                break;
-            default:
-                printf("Entrada inválida!\n");
-                break;
-        }
+    if(argc < 4 || argc > 4){
+        error_param();
+        return 0;
     }
-
-    OU então
-    int main(int argc, char *argv[])
-    {
-        if(argc < 6 || argc > 6){
+    if(!strcmp("-c", argv[1])){
+        if(strstr(argv[3], ".huffman")){
+            comprimir(argv[2], argv[3]);
+        }
+        else
             error_param();
-            return 0;
-        }
     }
-    */
-   return 0;
+    else if (!strcmp("-d", argv[1])){
+        if(strstr(argv[2], ".huffman"))
+            descomprimir(argv[2], argv[3]);
+        else
+            error_param();
+    }
+    else
+        error_param();
+    return 0;
 }

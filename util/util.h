@@ -40,4 +40,10 @@ void buscando_frequencias(FILE *entrada, unsigned long *bytes);
  */
 void error_file();
 
+/**
+ * @brief Função que printa no terminal o uso correto do programa caso tenha sido chamado de forma incorreta
+ * 
+ */
+void error_param();
+
 #endif

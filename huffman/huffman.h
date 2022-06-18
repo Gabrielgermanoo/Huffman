@@ -56,8 +56,9 @@ tree *new_tree_node(byte ch, int freq, tree *left, tree *right);
 
 /**
  * @brief função que cria um novo nó na fila de prioridade
- * @param tree_node
- * @return tree*
+ * 
+ * @param tree_node 
+ * @return node_pq* 
  */
 node_pq *new_node(tree *tree_node);
 

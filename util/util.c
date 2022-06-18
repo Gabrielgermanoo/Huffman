@@ -30,3 +30,9 @@ void error_file()
     printf("--------------------\nErro ao encontrar o arquivo, por favor verifique se o arquivo esta no diretorio correto\n--------------------");
     exit(EXIT_SUCCESS);
 }
+
+void error_param()
+{
+    printf("--------------------\nUso invalido!\nModelo de uso: ./main [-c OU -d] [ARQ. DE ENTRADA] [ARQ. DE SAIDA]\n\n-c: Comprime um arquivo; ARQ. DE SAIDA deve ser .huffman\n");   
+    printf("-d: Descomprime um arquivo; ARQ. DE ENTRADA deve ser .huffman\n--------------------");
+}
