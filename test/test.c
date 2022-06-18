@@ -32,12 +32,23 @@ void test_create_queue()
 
 void test_push_queue()
 {
+    int frequency = 15;
+    queue queue = {NULL, 0};
 
+    CU_ASSERT_PTR_NOT_NULL(NEW_QUEUE);
+    tree *AUX_NODE = new_tree_node('A', frequency, NULL, NULL);
+    CU_ASSERT_PTR_NULL(AUX_NODE->left);
+    CU_ASSERT_PTR_NULL(AUX_NODE->right);
+
+    CU_ASSERT_PTR_NOT_NULL(NEW_QUEUE);
+    node_pq *AUX_PQ = new_node(AUX_NODE) ;
+    insert(AUX_PQ, &queue);
+    CU_ASSERT_PTR_NOT_NULL(AUX_PQ);
 }
 
 void test_pop_queue() //dequeue
 {
-    CU_ASSERT_PTR_NOT_NULL(NEW_QUEUE);
+    
 }
 
 void test_create_huffman_tree()
@@ -54,7 +65,7 @@ void test_generate_huffman_tree()
 void test_generate_huffman_tree_from_file()
 {
     free_huffman_tree(NEW_HUFF_ROOT);
-    CU_ASSERT_PTR_NOT_NULL(NEW_HUFF_ROOT);
+    CU_ASSERT_PTR_NULL(NEW_HUFF_ROOT);
 
     NEW_HUFF_ROOT = NULL;
     CU_ASSERT_PTR_NULL(NEW_HUFF_ROOT);

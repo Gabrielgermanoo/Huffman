@@ -28,6 +28,15 @@ int main()
                 break;
         }
     }
+
+    OU então
+    int main(int argc, char *argv[])
+    {
+        if(argc < 6 || argc > 6){
+            error_param();
+            return 0;
+        }
+    }
     */
    return 0;
 }
