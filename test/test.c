@@ -7,7 +7,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-queue *NEW_QUEUE = NULL;
+node_pq *NEW_QUEUE = NULL;
 tree *NEW_HUFF_ROOT = NULL;
 
 int init_suite(void) {
@@ -25,9 +25,9 @@ int clean_suite(void) {
 */
 void test_create_queue()
 {
-    //NEW_QUEUE = new_node()
-    //CU_ASSERT_PTR_NULL();
-    //CU_ASSERT_FALSE();
+    NEW_QUEUE = new_node(NEW_HUFF_ROOT);
+    CU_ASSERT_PTR_NULL(NEW_QUEUE->next);
+    CU_ASSERT_FALSE(NEW_QUEUE->node);
 }
 
 void test_push_queue()
@@ -37,12 +37,13 @@ void test_push_queue()
 
 void test_pop_queue() //dequeue
 {
-
+    CU_ASSERT_PTR_NOT_NULL(NEW_QUEUE);
 }
 
 void test_create_huffman_tree()
 {
-
+    NEW_HUFF_ROOT = create_empty_huff_node();
+    CU_ASSERT_PTR_NULL(NEW_HUFF_ROOT);
 }
 
 void test_generate_huffman_tree()
@@ -52,7 +53,12 @@ void test_generate_huffman_tree()
 
 void test_generate_huffman_tree_from_file()
 {
+    free_huffman_tree(NEW_HUFF_ROOT);
+    CU_ASSERT_PTR_NOT_NULL(NEW_HUFF_ROOT);
 
+    NEW_HUFF_ROOT = NULL;
+    CU_ASSERT_PTR_NULL(NEW_HUFF_ROOT);
+    FILE *fp = fopen("tests/tree.txt", "rb");
 }
 
 int main()

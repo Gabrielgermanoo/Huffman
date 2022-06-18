@@ -109,3 +109,8 @@ tree* rebuild_hufftree(char *string_tree, short *x)
     }
     return new_tree_node(string_tree[*x], 0, NULL, NULL);
 }
+
+tree* create_empty_huff_node()
+{
+	return NULL;
+} 

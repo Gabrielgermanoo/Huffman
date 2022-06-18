@@ -78,4 +78,11 @@ void free_huffman_tree(tree *node);
  */
 tree* rebuild_hufftree(char *string_tree, short *x);
 
+/**
+ * @brief Create a empty huff node object
+ * 
+ * @return tree* 
+ */
+tree* create_empty_huff_node();
+
 #endif
