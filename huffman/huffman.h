@@ -86,4 +86,19 @@ tree* rebuild_hufftree(char *string_tree, short *x);
  */
 tree* create_empty_huff_node();
 
+/**
+ * @brief Imprime a arvore em pré-ordem
+ * 
+ * @param root 
+ */
+void print_huff_pre_order(tree *root);
+
+/**
+ * @brief verifica se a árvore está vazia
+ * 
+ * @param huff_tree 
+ * @return int 
+ */
+int is_huff_empty(tree *huff_tree);
+
 #endif

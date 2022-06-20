@@ -114,3 +114,19 @@ tree* create_empty_huff_node()
 {
 	return NULL;
 } 
+
+
+void print_huff_pre_order(tree *root)
+{
+    if(!is_huff_empty(root))
+	{
+		printf("%5u | %d\n", root->ch, root->freq);
+		print_huff_pre_order(root->left);
+		print_huff_pre_order(root->right);
+	}
+}
+
+int is_huff_empty(tree *huff_tree)
+{
+    return (huff_tree == NULL);
+}
