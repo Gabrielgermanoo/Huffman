@@ -22,7 +22,7 @@ struct _nodearvore{
 ////
 
 /**
- * @brief Função que escreve no arquivo de saída 
+ * @brief Função que escreve no arquivo de saída e retorna o tamanho da árvore
  * @param saida arquivo de saída
  * @param node nó da arvore
  * @param x
