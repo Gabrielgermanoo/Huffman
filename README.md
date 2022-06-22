@@ -46,5 +46,6 @@ Para executar:
 Para compilar e executar o programa que realizará a comparação entre as estruturas:
 ```bash
   cd Plotagem_e_Contagem
+  python plot.py
 ```
 
