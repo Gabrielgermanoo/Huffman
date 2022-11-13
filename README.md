@@ -32,7 +32,7 @@ Para compilar o compactador e descompactador de arquivos:
 Para executar:
 ```
 (PARA COMPILAR): ./main -c [NOME_ARQUIVO_ENTRADA] [NOME_ARQUIVO_SAIDA].huffman -> necessário ser .huffman
-(PARA DESCOMPILAR): ./main -c [NOME_ARQUIVO_ENTRADA].huffman [NOME_ARQUIVO_SAIDA] -> necessário ser .huffman
+(PARA DESCOMPILAR): ./main -d [NOME_ARQUIVO_ENTRADA].huffman [NOME_ARQUIVO_SAIDA] -> necessário ser .huffman
 ```
 
 ### Testes Unitários
